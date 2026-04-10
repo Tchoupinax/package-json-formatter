@@ -7,6 +7,8 @@ import (
 )
 
 // Set at link time, e.g. -ldflags "-X main.version=1.2.3 -X main.commit=... -X main.buildDate=..."
+//
+//nolint:gochecknoglobals // -X linker symbols must be package-level vars.
 var (
 	version   = "dev"
 	commit    = "unknown"

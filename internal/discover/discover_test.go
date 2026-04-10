@@ -14,6 +14,7 @@ func TestPackageJSONFiles_SkipsNodeModules(t *testing.T) {
 	if err := os.MkdirAll(nm, 0o755); err != nil {
 		t.Fatal(err)
 	}
+	//nolint:gosec // G306: test fixtures mimic normal package.json permissions
 	if err := os.WriteFile(filepath.Join(nm, PackageJSON), []byte(`{"name":"x"}`), 0o644); err != nil {
 		t.Fatal(err)
 	}
@@ -32,6 +33,7 @@ func mustMk(t *testing.T, dir string, body string) {
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		t.Fatal(err)
 	}
+	//nolint:gosec // G306: test fixtures mimic normal package.json permissions
 	if err := os.WriteFile(filepath.Join(dir, PackageJSON), []byte(body), 0o644); err != nil {
 		t.Fatal(err)
 	}

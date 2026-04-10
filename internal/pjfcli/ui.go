@@ -11,13 +11,13 @@ import (
 )
 
 const (
-	cReset    = "\033[0m"
-	cBold     = "\033[1m"
-	cDim      = "\033[2m"
-	cGreen    = "\033[32m"
-	cRed      = "\033[31m"
-	cCyan     = "\033[36m"
-	cYellow        = "\033[33m"
+	cReset           = "\033[0m"
+	cBold            = "\033[1m"
+	cDim             = "\033[2m"
+	cGreen           = "\033[32m"
+	cRed             = "\033[31m"
+	cCyan            = "\033[36m"
+	cYellow          = "\033[33m"
 	cFolderHighlight = "\033[1;95m" // bold bright magenta: parent dir of package.json
 	pathColWidth     = 72
 	lineWidth        = 4 + pathColWidth + 12
