@@ -1,10 +1,95 @@
-run:
-  timeout: 5m
-
+version: "2"
 linters:
   enable:
-  - errcheck
-  - govet
-  - ineffassign
+  - asasalint
+  - asciicheck
+  - bidichk
+  - bodyclose
+  - contextcheck
+  - depguard
+  - dogsled
+  - dupl
+  - durationcheck
+  - errchkjson
+  - exhaustive
+  - gocheckcompilerdirectives
+  - gochecknoglobals
+  - gochecknoinits
+  - gochecksumtype
+  - gocognit
+  - goconst
+  - gocyclo
+  - gosec
+  - gosmopolitan
+  - lll
+  - loggercheck
+  - makezero
+  - misspell
+  - musttag
+  - nakedret
+  - nilerr
+  - nilnesserr
+  - prealloc
+  - protogetter
+  - reassign
+  - recvcheck
+  - revive
+  - rowserrcheck
+  - spancheck
+  - sqlclosecheck
   - staticcheck
-  - unused
+  - testifylint
+  - unconvert
+  - unparam
+  - whitespace
+  - zerologlint
+  disable:
+  - errorlint
+  - noctx
+  settings:
+    depguard:
+      rules:
+        prevent_unmaintained_packages:
+          list-mode: lax
+          files:
+          - $all
+          - "!$test"
+          allow:
+          - $gostd
+          deny:
+          - pkg: io/ioutil
+            desc: "replaced by io and os packages since Go 1.16: https://tip.golang.org/doc/go1.16#ioutil"
+    gocyclo:
+      min-complexity: 20
+    lll:
+      line-length: 200
+    revive:
+      rules:
+      - name: dot-imports
+        disabled: true
+  exclusions:
+    generated: lax
+    presets:
+    - comments
+    - common-false-positives
+    - legacy
+    - std-error-handling
+    rules:
+    - linters:
+      - dupl
+      - gochecknoglobals
+      path: _test\.go
+    paths:
+    - third_party$
+    - builtin$
+    - examples$
+formatters:
+  enable:
+  - gofmt
+  - goimports
+  exclusions:
+    generated: lax
+    paths:
+    - third_party$
+    - builtin$
+    - examples$
