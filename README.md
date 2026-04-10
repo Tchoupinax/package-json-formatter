@@ -2,6 +2,13 @@
 
 CLI tool that formats `package.json` files: stable key order, tidy `scripts` and `exports`, optional script and key rules from a YAML config, and monorepo-friendly discovery.
 
+## Installation
+
+```
+brew tap tchoupinax/brew
+brew install tchoupinax/brew/pjf
+```
+
 ## Build
 
 ```bash
