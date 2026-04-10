@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"package-json-formatter/internal/config"
-	"package-json-formatter/internal/discover"
 	"package-json-formatter/internal/format"
 	"package-json-formatter/internal/pjfcli"
 )
@@ -22,7 +21,6 @@ func run() int {
 		printVersion()
 		return 0
 	}
-
 	configPath := flag.String("config", "", "YAML config path (default: pjf.yaml in working directory if that file exists)")
 	write := flag.Bool("w", false, "write formatted output back to files")
 	recursive := flag.Bool("r", true, "find all package.json under each target (monorepo mode)")
@@ -78,6 +76,10 @@ func run() int {
 		return 1
 	}
 
+	return runPaths(wd, paths, *write, cfg, cfgDir)
+}
+
+func runPaths(wd string, paths []string, write bool, cfg config.Config, cfgDir string) int {
 	ui := pjfcli.New(wd)
 	ui.Header(len(paths))
 	runStart := time.Now()
@@ -85,48 +87,7 @@ func run() int {
 	var failed bool
 	var okN, failN int
 	for _, p := range paths {
-		bad := func() bool {
-			start := time.Now()
-			var detail string
-
-			raw, err := os.ReadFile(p)
-			if err != nil {
-				detail = fmt.Sprintf("read: %v", err)
-				ui.Row(false, p, time.Since(start), detail)
-				return true
-			}
-			sm, err := cfg.ScriptMergeFor(p, cfgDir, wd)
-			if err != nil {
-				detail = fmt.Sprintf("scripts: %v", err)
-				ui.Row(false, p, time.Since(start), detail)
-				return true
-			}
-			ek, err := cfg.EnsureKeysFor(p, cfgDir, wd)
-			if err != nil {
-				detail = fmt.Sprintf("ensureKeys: %v", err)
-				ui.Row(false, p, time.Since(start), detail)
-				return true
-			}
-			out, err := format.Format(raw, cfg.KeyOrder, sm.Skip, sm.Overrides, ek.Skip, ek.Keys, cfg.PinDependencyVersionsEnabled())
-			if err != nil {
-				detail = fmt.Sprintf("format: %v", err)
-				ui.Row(false, p, time.Since(start), detail)
-				return true
-			}
-			if *write {
-				if err := os.WriteFile(p, out, 0o644); err != nil {
-					detail = fmt.Sprintf("write: %v", err)
-					ui.Row(false, p, time.Since(start), detail)
-					return true
-				}
-				ui.Row(true, p, time.Since(start), "")
-				return false
-			}
-			os.Stdout.Write(out)
-			ui.Row(true, p, time.Since(start), "")
-			return false
-		}()
-		if bad {
+		if ok := processPath(p, write, cfg, cfgDir, wd, ui); !ok {
 			failed = true
 			failN++
 		} else {
@@ -138,6 +99,41 @@ func run() int {
 		return 1
 	}
 	return 0
+}
+
+func processPath(path string, write bool, cfg config.Config, cfgDir, wd string, ui *pjfcli.UI) bool {
+	start := time.Now()
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		ui.Row(false, path, time.Since(start), fmt.Sprintf("read: %v", err))
+		return false
+	}
+	sm, err := cfg.ScriptMergeFor(path, cfgDir, wd)
+	if err != nil {
+		ui.Row(false, path, time.Since(start), fmt.Sprintf("scripts: %v", err))
+		return false
+	}
+	ek, err := cfg.EnsureKeysFor(path, cfgDir, wd)
+	if err != nil {
+		ui.Row(false, path, time.Since(start), fmt.Sprintf("ensureKeys: %v", err))
+		return false
+	}
+	out, err := format.Format(raw, cfg.KeyOrder, sm.Skip, sm.Overrides, ek.Skip, ek.Keys, cfg.PinDependencyVersionsEnabled())
+	if err != nil {
+		ui.Row(false, path, time.Since(start), fmt.Sprintf("format: %v", err))
+		return false
+	}
+	if write {
+		if err := os.WriteFile(path, out, 0o644); err != nil { //nolint:gosec // G306: package.json stays group/world-readable like typical npm projects
+			ui.Row(false, path, time.Since(start), fmt.Sprintf("write: %v", err))
+			return false
+		}
+		ui.Row(true, path, time.Since(start), "")
+		return true
+	}
+	os.Stdout.Write(out)
+	ui.Row(true, path, time.Since(start), "")
+	return true
 }
 
 const defaultConfigFile = "pjf.yml"
@@ -168,79 +164,4 @@ func resolveConfigPath(flagValue, wd string) (string, error) {
 		return "", fmt.Errorf("%s: config path is a directory", candidate)
 	}
 	return candidate, nil
-}
-
-func resolveTargets(args []string, cfg config.Config, cfgDir string, recursive bool) ([]string, error) {
-	if len(cfg.Roots) > 0 && cfgDir == "" {
-		return nil, fmt.Errorf("config sets \"roots\" but no config file was loaded (roots are relative to the config file); add %s or pass -config", defaultConfigFile)
-	}
-
-	if len(cfg.Roots) > 0 {
-		var absRoots []string
-		for _, r := range cfg.Roots {
-			r = filepath.Clean(r)
-			if !filepath.IsAbs(r) {
-				if cfgDir == "" {
-					return nil, fmt.Errorf("internal: cfgDir empty with roots")
-				}
-				r = filepath.Join(cfgDir, r)
-			}
-			absRoots = append(absRoots, r)
-		}
-		return discover.FromRoots(absRoots, cfg.SkipDirNames)
-	}
-
-	if !recursive {
-		var out []string
-		for _, a := range args {
-			a = filepath.Clean(a)
-			st, err := os.Stat(a)
-			if err != nil {
-				return nil, err
-			}
-			if st.IsDir() {
-				pj := filepath.Join(a, discover.PackageJSON)
-				if _, err := os.Stat(pj); err != nil {
-					return nil, fmt.Errorf("%s: no package.json in directory", a)
-				}
-				out = append(out, pj)
-				continue
-			}
-			if filepath.Base(a) != discover.PackageJSON {
-				return nil, fmt.Errorf("%s: expected a package.json path or directory", a)
-			}
-			out = append(out, a)
-		}
-		return out, nil
-	}
-
-	var all []string
-	seen := make(map[string]bool)
-	for _, a := range args {
-		a = filepath.Clean(a)
-		st, err := os.Stat(a)
-		if err != nil {
-			return nil, err
-		}
-		var roots []string
-		if st.IsDir() {
-			roots = []string{a}
-		} else {
-			if filepath.Base(a) != discover.PackageJSON {
-				return nil, fmt.Errorf("%s: use a directory or package.json when -r is set", a)
-			}
-			roots = []string{filepath.Dir(a)}
-		}
-		list, err := discover.FromRoots(roots, cfg.SkipDirNames)
-		if err != nil {
-			return nil, err
-		}
-		for _, p := range list {
-			if !seen[p] {
-				seen[p] = true
-				all = append(all, p)
-			}
-		}
-	}
-	return all, nil
 }

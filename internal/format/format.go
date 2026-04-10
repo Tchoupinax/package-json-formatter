@@ -9,44 +9,46 @@ import (
 	"strings"
 )
 
-// DefaultKeyOrder follows common npm package.json conventions.
-var DefaultKeyOrder = []string{
-	"name",
-	"version",
-	"private",
-	"description",
-	"keywords",
-	"homepage",
-	"bugs",
-	"license",
-	"author",
-	"contributors",
-	"funding",
-	"files",
-	"main",
-	"browser",
-	"bin",
-	"man",
-	"directories",
-	"repository",
-	"type",
-	"types",
-	"typings",
-	"exports",
-	"module",
-	"sideEffects",
-	"workspaces",
-	"scripts",
-	"config",
-	"dependencies",
-	"devDependencies",
-	"peerDependencies",
-	"optionalDependencies",
-	"bundledDependencies",
-	"engines",
-	"os",
-	"cpu",
-	"publishConfig",
+// defaultKeyOrder follows common npm package.json conventions.
+func defaultKeyOrder() []string {
+	return []string{
+		"name",
+		"version",
+		"private",
+		"description",
+		"keywords",
+		"homepage",
+		"bugs",
+		"license",
+		"author",
+		"contributors",
+		"funding",
+		"files",
+		"main",
+		"browser",
+		"bin",
+		"man",
+		"directories",
+		"repository",
+		"type",
+		"types",
+		"typings",
+		"exports",
+		"module",
+		"sideEffects",
+		"workspaces",
+		"scripts",
+		"config",
+		"dependencies",
+		"devDependencies",
+		"peerDependencies",
+		"optionalDependencies",
+		"bundledDependencies",
+		"engines",
+		"os",
+		"cpu",
+		"publishConfig",
+	}
 }
 
 // Format returns formatted JSON with ordered top-level keys and sorted nested object keys.
@@ -63,7 +65,7 @@ func Format(raw []byte, keyOrder []string, skipScripts bool, scriptOverrides map
 
 	order := keyOrder
 	if len(order) == 0 {
-		order = DefaultKeyOrder
+		order = defaultKeyOrder()
 	}
 
 	if !skipScripts && len(scriptOverrides) > 0 {
@@ -381,7 +383,7 @@ func writeIndentedRaw(w *bytes.Buffer, raw []byte, depth int) error {
 	var v interface{}
 	if err := dec.Decode(&v); err != nil {
 		w.Write(raw)
-		return nil
+		return nil //nolint:nilerr // invalid JSON: emit raw fragment unchanged
 	}
 	var buf bytes.Buffer
 	enc := json.NewEncoder(&buf)
@@ -389,7 +391,7 @@ func writeIndentedRaw(w *bytes.Buffer, raw []byte, depth int) error {
 	enc.SetIndent("", "  ")
 	if err := enc.Encode(v); err != nil {
 		w.Write(raw)
-		return nil
+		return nil //nolint:nilerr // re-indent failed: emit raw fragment unchanged
 	}
 	b := buf.Bytes()
 	if len(b) > 0 && b[len(b)-1] == '\n' {

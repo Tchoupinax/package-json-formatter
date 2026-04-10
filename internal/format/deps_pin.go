@@ -5,11 +5,13 @@ import (
 	"strings"
 )
 
-var dependencyMapKeys = []string{
-	"dependencies",
-	"devDependencies",
-	"peerDependencies",
-	"optionalDependencies",
+func dependencyMapKeys() []string {
+	return []string{
+		"dependencies",
+		"devDependencies",
+		"peerDependencies",
+		"optionalDependencies",
+	}
 }
 
 // PinDependencyVersionString turns ^1.2.3 and ~1.2.3 into 1.2.3. Non-semver refs are unchanged.
@@ -42,7 +44,7 @@ func isNonSemverDependencyRef(v string) bool {
 }
 
 func pinDependencyMaps(top map[string]json.RawMessage) {
-	for _, key := range dependencyMapKeys {
+	for _, key := range dependencyMapKeys() {
 		raw, ok := top[key]
 		if !ok || len(raw) == 0 {
 			continue
