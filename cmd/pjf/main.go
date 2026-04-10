@@ -22,7 +22,6 @@ func run() int {
 		printVersion()
 		return 0
 	}
-
 	configPath := flag.String("config", "", "YAML config path (default: pjf.yaml in working directory if that file exists)")
 	write := flag.Bool("w", false, "write formatted output back to files")
 	recursive := flag.Bool("r", true, "find all package.json under each target (monorepo mode)")
