@@ -3,5 +3,6 @@ version: 2
 project_name: package-json-formatter
 
 builds:
+- main: cmd/pjf
 - ldflags:
   - -s -w -X package-json-formatter/cmd/pjf/version.version={{.Version}} -X package-json-formatter/cmd/pjf/version.commit={{.FullCommit}} -X package-json-formatter/cmd/pjf/version.buildDate={{.Date}}
