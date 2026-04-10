@@ -1,0 +1,17 @@
+name: Prepare next release 🚀
+
+on:
+  push:
+    branches:
+    - master
+
+jobs:
+  build:
+    name: Run release draft to extract labels ☕️
+    runs-on: ubuntu-latest
+    steps:
+    - name: Run release draft to extract labels ☕️
+      uses: tchoupinax/repo-config/shared-actions/steps/dx/prepare-draft-release@v0
+      with:
+        appId: ${{ secrets.DEPLOY_APP_ID }}
+        privateKey: ${{ secrets.DEPLOY_APP_KEY }}

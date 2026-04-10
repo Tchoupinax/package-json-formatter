@@ -1,0 +1,60 @@
+# Copy to pjf.yaml in the repo root to load it automatically, or use: -config /path/to/file.yaml
+#
+# keyOrder: top-level package.json keys first in this order; any other keys are appended (sorted).
+keyOrder:
+- name
+- version
+- private
+- description
+- type
+- scripts
+- dependencies
+- devDependencies
+- peerDependencies
+
+# Merged into matching package.json files (same script name overwrites existing value).
+scripts:
+  build: tsc
+  test: node --test
+
+# Glob patterns (relative to this file) for package.json paths that skip all script merging.
+# scriptsIgnore:
+#   - vendor/**
+#   - packages/legacy/**/package.json
+
+# Per-file or glob rules, in order; later rules override earlier ones for the same script name.
+# scriptsFiles:
+#   - path: packages/web/package.json
+#     scripts:
+#       dev: vite
+#   - path: packages/**/package.json
+#     scripts:
+#       lint: eslint .
+
+# Top-level keys added only when absent (YAML types become JSON bool/string/number/object).
+# ensureKeys:
+#   prettier: true
+# ensureKeysIgnore:
+#   - vendor/**
+# ensureKeysFiles:
+#   - path: package.json
+#     keys:
+#       private: true
+#   - path: packages/**/package.json
+#     keys:
+#       type: module
+
+# Strip leading ^ and ~ in dependencies, devDependencies, peerDependencies, optionalDependencies (default on).
+# pinDependencyVersions: false
+
+# Optional: limit discovery to these directories relative to this config file.
+# If omitted, CLI targets (default ".") are walked for all package.json files.
+roots:
+- .
+# - packages
+# - apps/web
+
+# Optional: extra directory names to skip while walking (defaults are always sensible).
+# skipDirNames:
+#   - node_modules
+#   - .git

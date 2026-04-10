@@ -1,0 +1,40 @@
+keyOrder:
+- name
+- version
+- author
+- license
+- main
+- files
+- engines
+- private
+- description
+- type
+- prettier
+- scripts
+- dependencies
+- devDependencies
+- peerDependencies
+- packageManager
+
+scripts:
+  build: "rm -rf build && tsc --project ."
+  lint: "prettier --write . && eslint --fix ."
+  "lint:ci": "prettier --write . && eslint --fix . || true"
+  "lint:debug": 'eslint . --debug | grep -E "Traversing|Found file|Ignoring"'
+  test: "vitest run || true"
+
+scriptsFiles:
+- path: package.json
+  scripts:
+    build: "turbo run build --continue"
+    clean: "turbo run clean && rm -rf node_modules .turbo pnpm-lock.yaml"
+    upgrade: "pnpm ncu -p pnpm -i --cooldown 3 --format group && pnpm ncu -p pnpm -i --filter '@rlvt/*' --format group && pnpm ncu -p pnpm -i --packageFile 'packages/*/package.json' --cooldown 3 --format group && pnpm ncu -p pnpm -i --packageFile 'packages/*/package.json' --filter '@rlvt/*' --format group"
+- path: packages/eslint-config/package.json
+  scripts:
+    build: "true"
+- path: packages/prettier-config/package.json
+  scripts:
+    build: "true"
+
+ensureKeys:
+  prettier: "@rlvt/prettier-config"
