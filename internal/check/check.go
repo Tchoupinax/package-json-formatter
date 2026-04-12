@@ -72,6 +72,7 @@ type PinDrift struct {
 	Pinned  string
 }
 
+//nolint:gochecknoglobals
 var dependencySections = []string{
 	"dependencies",
 	"devDependencies",
