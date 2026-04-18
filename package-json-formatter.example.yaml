@@ -51,6 +51,7 @@ scripts:
 # If omitted, CLI targets (default ".") are walked for all package.json files.
 roots:
 - .
+
 # - packages
 # - apps/web
 
